@@ -8,12 +8,12 @@
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  color: #333;
+  color: #1a1a1a;
 }
 
 .header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, #5a67d8 0%, #6b3fa0 100%);
+  color: #ffffff;
   padding: 3rem 2rem;
   text-align: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -180,8 +180,8 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   thead {
-    background: #667eea;
-    color: white;
+    background: #5a67d8;
+    color: #ffffff;
 
     th {
       padding: 1rem;
@@ -211,7 +211,7 @@ code {
   border-radius: 4px;
   font-family: 'Courier New', Courier, monospace;
   font-size: 0.9em;
-  color: #e83e8c;
+  color: #c2185b;
   border: 1px solid #e0e0e0;
 }
 
@@ -291,8 +291,8 @@ code {
 }
 
 .highlight-box {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, #5a67d8 0%, #6b3fa0 100%);
+  color: #ffffff;
   padding: 1.5rem;
   border-radius: 8px;
   text-align: center;
@@ -314,7 +314,7 @@ code {
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     font-weight: 600;
-    color: #667eea;
+    color: #5a67d8;
     text-align: center;
     min-width: 300px;
     margin: 0.5rem 0;
@@ -352,7 +352,7 @@ code {
 
   p {
     font-size: 1.2rem;
-    color: #667eea;
+    color: #5a67d8;
     font-weight: 600;
   }
 }
