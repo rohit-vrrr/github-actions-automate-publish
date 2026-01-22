@@ -24,6 +24,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Inspect projects folder
+        run: |
+          ls
+          echo "---- projects ----"
+          ls projects || echo "No projects folder"
+
       # 4️⃣ Bump version (patch)
       - name: Bump version
         working-directory: projects/github-actions-automate-publish
