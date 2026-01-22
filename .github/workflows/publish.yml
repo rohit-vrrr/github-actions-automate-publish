@@ -1,0 +1,50 @@
+name: Build and Publish to Azure Artifacts
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup Node.js
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      # 3️⃣ Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 4️⃣ Build Angular library (storybook lib)
+      - name: Build library
+        run: npm run build
+
+      # 5️⃣ Create .npmrc inside dist folder
+      - name: Configure npm for Azure Artifacts
+        run: |
+          cat <<EOF > dist/<project-name>/.npmrc
+          registry=https://pkgs.dev.azure.com/time-payroll-kmddk/Delta/_packaging/hcm-angular-github-actions-test/npm/registry/
+          always-auth=true
+          //pkgs.dev.azure.com/time-payroll-kmddk/Delta/_packaging/hcm-angular-github-actions-test/npm/registry/:_authToken=${AZURE_DEVOPS_PAT}
+          EOF
+        env:
+          AZURE_DEVOPS_PAT: ${{ secrets.AZURE_DEVOPS_PAT }}
+
+      # 6️⃣ Bump version (patch)
+      - name: Bump version
+        working-directory: dist/<project-name>
+        run: npm version patch --no-git-tag-version
+
+      # 7️⃣ Publish to Azure Artifacts
+      - name: Publish package
+        working-directory: dist/<project-name>
+        run: npm publish
