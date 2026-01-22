@@ -47,7 +47,7 @@ jobs:
       # 7️⃣ Safety check if version already exists
       - name: Check if version already exists
         working-directory: dist/github-actions-automate-publish
-        run: npm view <package-name> version || echo "New version"
+        run: npm view github-actions-automate-publish version || echo "New version"
 
       # 8️⃣ Publish to Azure Artifacts
       - name: Publish package
