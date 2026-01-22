@@ -32,12 +32,12 @@ jobs:
 
       # 4️⃣ Bump version (patch)
       - name: Bump version
-        working-directory: projects/github-actions-automate-publish
+        working-directory: .
         run: npm version patch --no-git-tag-version
 
       # 5️⃣ Build Angular library (storybook lib)
-      - name: Build library
-        run: npm run build
+      - name: Build Angular library
+        run: npx ng build
 
       # 6️⃣ Create .npmrc inside dist folder
       - name: Configure npm for Azure Artifacts
