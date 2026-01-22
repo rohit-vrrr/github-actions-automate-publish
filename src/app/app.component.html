@@ -1,0 +1,231 @@
+<div class="documentation-container">
+  <header class="header">
+    <div class="header-content">
+      <h1>GitHub Actions Automation Guide</h1>
+      <p class="subtitle">
+        Automate your Angular library publishing to Azure Artifacts
+      </p>
+    </div>
+  </header>
+
+  <main class="content">
+    <section class="intro-section">
+      <h2>Introduction</h2>
+      <p class="highlight">
+        <strong>GitHub Actions</strong> = CI/CD pipelines that run inside GitHub
+        when something happens
+      </p>
+      <div class="pipeline-flow">
+        <code>Pipeline Build create .npmrc publish to Azure Artifacts</code>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>What we are going to automate (your manual steps)</h2>
+
+      <div class="two-column">
+        <div class="column manual">
+          <h3>Current manual process:</h3>
+          <ol>
+            <li>Build Angular library</li>
+            <li>Go to <code>dist/&lt;project-name&gt;</code></li>
+            <li>Add <code>.npmrc</code></li>
+            <li>Authenticate to Azure Artifacts</li>
+            <li>Increment version</li>
+            <li>Run <code>npm publish</code></li>
+          </ol>
+        </div>
+
+        <div class="column automated">
+          <h3>After automation (GitHub Actions):</h3>
+          <p class="automation-message">
+            All of the above runs automatically when you push to
+            <code>master</code>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Prerequisites (one-time setup)</h2>
+
+      <div class="prerequisite-card">
+        <h3>A. Create Azure DevOps PAT (Personal Access Token)</h3>
+        <p>Azure DevOps User settings Personal access tokens</p>
+        <p><strong>Scopes:</strong></p>
+        <p class="check-item">Packaging Read & write</p>
+        <p class="note">Copy the token</p>
+      </div>
+
+      <div class="prerequisite-card">
+        <h3>B. Store PAT in GitHub Secrets</h3>
+        <p>GitHub repo Settings Secrets and variables Actions</p>
+        <p>Add New repository secret</p>
+
+        <table class="secrets-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>AZURE_DEVOPS_PAT</code></td>
+              <td><code>&lt;your PAT&gt;</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p class="warning">
+          This is <strong>mandatory</strong> - never hardcode tokens.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>How authentication will work (important)</h2>
+      <p>
+        Instead of <code>vsts-npm-auth</code> (which is aging), we'll use a
+        token-based <code>.npmrc</code>.
+      </p>
+      <p>GitHub Actions will dynamically create:</p>
+
+      <pre
+        class="code-block"
+      ><code>registry=https://pkgs.dev.azure.com/time-payroll-kmddk/Delta/_packaging/hcm-angular/npm/registry/
+always-auth=true
+//pkgs.dev.azure.com/time-payroll-kmddk/Delta/_packaging/hcm-angular/npm/registry/:_authToken=$&#123;AZURE_DEVOPS_PAT&#125;</code></pre>
+
+      <div class="benefits">
+        <p class="check-item">Works perfectly from GitHub</p>
+        <p class="check-item">No interactive auth</p>
+        <p class="check-item">Recommended by Microsoft</p>
+      </div>
+    </section>
+
+    <section class="section workflow-section">
+      <h2>GitHub Actions workflow (copy�paste ready)</h2>
+      <p>Create this file in your repo:</p>
+      <p class="file-path"><code>.github/workflows/publish.yml</code></p>
+
+      <pre
+        class="code-block yaml-code"
+      ><code>name: Build and Publish to Azure Artifacts
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1 Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2 Setup Node.js
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      # 3 Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 4 Build Angular library (storybook lib)
+      - name: Build library
+        run: npm run build
+
+      # 5 Create .npmrc inside dist folder
+      - name: Configure npm for Azure Artifacts
+        run: |
+          cat &lt;&lt;EOF &gt; dist/&lt;project-name&gt;/.npmrc
+          registry=https://pkgs.dev.azure.com/time-payroll-kmddk/Delta/_packaging/hcm-angular/npm/registry/
+          always-auth=true
+          //pkgs.dev.azure.com/time-payroll-kmddk/Delta/_packaging/hcm-angular/npm/registry/:_authToken=$&#123;AZURE_DEVOPS_PAT&#125;
+          EOF
+        env:
+          AZURE_DEVOPS_PAT: ${{ '{' }}{{ '{' }} secrets.AZURE_DEVOPS_PAT {{ '}' }}{{ '}' }}
+
+      # 6 Bump version (patch)
+      - name: Bump version
+        working-directory: dist/&lt;project-name&gt;
+        run: npm version patch --no-git-tag-version
+
+      # 7 Publish to Azure Artifacts
+      - name: Publish package
+        working-directory: dist/&lt;project-name&gt;
+        run: npm publish</code></pre>
+
+      <p class="replace-note">Replace: <code>&lt;project-name&gt;</code></p>
+    </section>
+
+    <section class="section">
+      <h2>Where will the package appear?</h2>
+      <p class="highlight-box">
+        <strong>Azure DevOps Artifacts hcm-angular feed</strong>
+      </p>
+      <p>Exactly the same as before.</p>
+    </section>
+
+    <section class="section">
+      <h2>How versioning works here (important)</h2>
+      <p>This line:</p>
+      <p><code>npm version patch --no-git-tag-version</code></p>
+
+      <p><strong>Automatically:</strong></p>
+      <ul>
+        <li><code>1.2.3</code> <code>1.2.4</code></li>
+        <li>Updates <code>package.json</code></li>
+        <li>Does NOT commit back to GitHub</li>
+      </ul>
+
+      <p><strong>Optional improvements later:</strong></p>
+      <ul>
+        <li>Use <code>minor</code> or <code>major</code></li>
+        <li>Use commit messages (semantic versioning)</li>
+        <li>Push version bump back to repo</li>
+        <li>Publish only on GitHub Releases</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Safety checks (recommended)</h2>
+      <p>You may want to prevent:</p>
+      <p class="warning-item">duplicate publishes</p>
+      <p class="warning-item">publishing on failed builds</p>
+
+      <p>Add this before publish:</p>
+      <pre
+        class="code-block"
+      ><code>      - name: Check if version already exists
+        working-directory: dist/&lt;project-name&gt;
+        run: npm view &lt;package-name&gt; version || echo "New version"</code></pre>
+    </section>
+
+    <section class="section summary-section">
+      <h2>Summary</h2>
+      <div class="flow-diagram">
+        <div class="flow-item">GitHub repo (code)</div>
+        <div class="flow-arrow"><span>push to master</span></div>
+        <div class="flow-item">GitHub Actions</div>
+        <div class="flow-arrow">
+          <span
+            >build Angular lib<br />create .npmrc<br />authenticate to Azure<br />npm
+            publish</span
+          >
+        </div>
+        <div class="flow-item">Azure Artifacts (hcm-angular feed)</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Happy automating! Your CI/CD pipeline is ready to go.</p>
+  </footer>
+</div>
