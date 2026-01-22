@@ -91,11 +91,13 @@
       </p>
       <p>GitHub Actions will dynamically create:</p>
 
-      <pre
-        class="code-block"
-      ><code>registry=https://pkgs.dev.azure.com/time-payroll-kmddk/Delta/_packaging/hcm-angular/npm/registry/
-always-auth=true
-//pkgs.dev.azure.com/time-payroll-kmddk/Delta/_packaging/hcm-angular/npm/registry/:_authToken=$&#123;AZURE_DEVOPS_PAT&#125;</code></pre>
+      <pre class="code-block">
+        <code>
+          registry=https://pkgs.dev.azure.com/time-payroll-kmddk/Delta/_packaging/hcm-angular/npm/registry/
+          always-auth=true
+          //pkgs.dev.azure.com/time-payroll-kmddk/Delta/_packaging/hcm-angular/npm/registry/:_authToken=$&#123;AZURE_DEVOPS_PAT&#125;
+        </code>
+      </pre>
 
       <div class="benefits">
         <p class="check-item">Works perfectly from GitHub</p>
@@ -105,62 +107,64 @@ always-auth=true
     </section>
 
     <section class="section workflow-section">
-      <h2>GitHub Actions workflow (copy�paste ready)</h2>
+      <h2>GitHub Actions workflow (copy-paste ready)</h2>
       <p>Create this file in your repo:</p>
       <p class="file-path"><code>.github/workflows/publish.yml</code></p>
 
-      <pre
-        class="code-block yaml-code"
-      ><code>name: Build and Publish to Azure Artifacts
+      <pre class="code-block yaml-code">
+        <code>
+          name: Build and Publish to Azure Artifacts
 
-on:
-  push:
-    branches:
-      - master
+          on:
+            push:
+              branches:
+                - master
 
-jobs:
-  publish:
-    runs-on: ubuntu-latest
+          jobs:
+            publish:
+              runs-on: ubuntu-latest
 
-    steps:
-      # 1 Checkout code
-      - name: Checkout repository
-        uses: actions/checkout@v4
+              steps:
+                # 1 Checkout code
+                - name: Checkout repository
+                  uses: actions/checkout@v4
 
-      # 2 Setup Node.js
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
+                # 2 Setup Node.js
+                - name: Setup Node
+                  uses: actions/setup-node@v4
+                  with:
+                    node-version: 18
 
-      # 3 Install dependencies
-      - name: Install dependencies
-        run: npm ci
+                # 3 Install dependencies
+                - name: Install dependencies
+                  run: npm ci
 
-      # 4 Build Angular library (storybook lib)
-      - name: Build library
-        run: npm run build
+                # 4 Build Angular library (storybook lib)
+                - name: Build library
+                  run: npm run build
 
-      # 5 Create .npmrc inside dist folder
-      - name: Configure npm for Azure Artifacts
-        run: |
-          cat &lt;&lt;EOF &gt; dist/&lt;project-name&gt;/.npmrc
-          registry=https://pkgs.dev.azure.com/time-payroll-kmddk/Delta/_packaging/hcm-angular/npm/registry/
-          always-auth=true
-          //pkgs.dev.azure.com/time-payroll-kmddk/Delta/_packaging/hcm-angular/npm/registry/:_authToken=$&#123;AZURE_DEVOPS_PAT&#125;
-          EOF
-        env:
-          AZURE_DEVOPS_PAT: ${{ '{' }}{{ '{' }} secrets.AZURE_DEVOPS_PAT {{ '}' }}{{ '}' }}
+                # 5 Create .npmrc inside dist folder
+                - name: Configure npm for Azure Artifacts
+                  run: |
+                    cat &lt;&lt;EOF &gt; dist/&lt;project-name&gt;/.npmrc
+                    registry=https://pkgs.dev.azure.com/time-payroll-kmddk/Delta/_packaging/hcm-angular/npm/registry/
+                    always-auth=true
+                    //pkgs.dev.azure.com/time-payroll-kmddk/Delta/_packaging/hcm-angular/npm/registry/:_authToken=$&#123;AZURE_DEVOPS_PAT&#125;
+                    EOF
+                  env:
+                    AZURE_DEVOPS_PAT: ${{ '{' }}{{ '{' }} secrets.AZURE_DEVOPS_PAT {{ '}' }}{{ '}' }}
 
-      # 6 Bump version (patch)
-      - name: Bump version
-        working-directory: dist/&lt;project-name&gt;
-        run: npm version patch --no-git-tag-version
+                # 6 Bump version (patch)
+                - name: Bump version
+                  working-directory: dist/&lt;project-name&gt;
+                  run: npm version patch --no-git-tag-version
 
-      # 7 Publish to Azure Artifacts
-      - name: Publish package
-        working-directory: dist/&lt;project-name&gt;
-        run: npm publish</code></pre>
+                # 7 Publish to Azure Artifacts
+                - name: Publish package
+                  working-directory: dist/&lt;project-name&gt;
+                  run: npm publish
+        </code>
+      </pre>
 
       <p class="replace-note">Replace: <code>&lt;project-name&gt;</code></p>
     </section>
