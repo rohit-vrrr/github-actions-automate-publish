@@ -24,11 +24,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 4️⃣ Build Angular library (storybook lib)
+      # 4️⃣ Bump version (patch)
+      - name: Bump version
+        working-directory: projects/github-actions-automate-publish
+        run: npm version patch --no-git-tag-version
+
+      # 5️⃣ Build Angular library (storybook lib)
       - name: Build library
         run: npm run build
 
-      # 5️⃣ Create .npmrc inside dist folder
+      # 6️⃣ Create .npmrc inside dist folder
       - name: Configure npm for Azure Artifacts
         run: |
           cat <<EOF > dist/github-actions-automate-publish/.npmrc
@@ -39,15 +44,10 @@ jobs:
         env:
           AZURE_DEVOPS_PAT: ${{ secrets.AZURE_DEVOPS_PAT }}
 
-      # 6️⃣ Bump version (patch)
-      - name: Bump version
+      # 7️⃣ Debug step: Print version before publish
+      - name: Print version before publish
         working-directory: dist/github-actions-automate-publish
-        run: npm version patch --no-git-tag-version
-
-      # 7️⃣ Safety check if version already exists
-      - name: Check if version already exists
-        working-directory: dist/github-actions-automate-publish
-        run: npm view github-actions-automate-publish version || echo "New version"
+        run: node -p "require('./package.json').version"
 
       # 8️⃣ Publish to Azure Artifacts
       - name: Publish package
