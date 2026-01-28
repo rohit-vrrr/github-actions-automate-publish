@@ -30,16 +30,15 @@ jobs:
         working-directory: .
         run: npm version patch --no-git-tag-version
 
-      # 5️⃣ Commit version bump
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: true
-
+      # 5️⃣ Commit & push version bump
       - name: Commit version bump
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "No version change, skipping commit"
+            exit 0
+          fi
           git add package.json package-lock.json
           git commit -m "chore(release): bump version [skip ci]"
           git push
